@@ -1,0 +1,73 @@
+name: affine
+x-app: &app
+  image: ${AFFINE_IMAGE:?Set AFFINE_IMAGE}
+  environment: &env
+    REDIS_SERVER_HOST: redis
+    DATABASE_URL: postgresql://affine:${DB_PASSWORD:?Set DB_PASSWORD}@postgres:5432/affine
+    AFFINE_INDEXER_ENABLED: 'false'
+    AFFINE_SERVER_EXTERNAL_URL: https://my.ovvesley.com
+  volumes:
+    - /opt/projects/affine/data/storage:/root/.affine/storage
+    - /opt/projects/affine/config:/root/.affine/config
+  networks: [internal]
+services:
+  affine:
+    <<: *app
+    restart: unless-stopped
+    networks: [internal, traefik]
+    depends_on:
+      redis: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+      affine_migration: {condition: service_completed_successfully}
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3010/info').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: traefik
+      traefik.http.routers.affine.rule: Host(`my.ovvesley.com`)
+      traefik.http.routers.affine.entrypoints: websecure
+      traefik.http.routers.affine.tls: 'true'
+      traefik.http.routers.affine.tls.certresolver: letsencrypt
+      traefik.http.services.affine.loadbalancer.server.port: '3010'
+  affine_migration:
+    <<: *app
+    command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js']
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  redis:
+    image: redis@sha256:02f2cc4882f8bf87c79a220ac958f58c700bdec0dfb9b9ea61b62fb0e8f1bfcf
+    restart: unless-stopped
+    networks: [internal]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres:
+    image: pgvector/pgvector@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
+    restart: unless-stopped
+    networks: [internal]
+    environment:
+      POSTGRES_USER: affine
+      POSTGRES_DB: affine
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    volumes:
+      - /opt/projects/affine/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'affine', '-d', 'affine']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  internal:
+  traefik:
+    external: true

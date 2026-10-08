@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up AFFiNE database, storage and configuration
+Requires=docker.service
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/opt/projects/affine/backup.sh
