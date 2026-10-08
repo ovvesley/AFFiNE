@@ -8,7 +8,7 @@ for(const file of readdirSync(dir).filter(f=>f.endsWith('.js'))){
  if(source.includes(before)){
   const newName=file.replace('.js','.ovvesley.js');
   writeFileSync(dir+'/'+newName,source.replaceAll(before,after).replaceAll(file,newName));
-  for(const html of ['index.html','selfhost.html']){
+  for(const html of ['index.html','selfhost.html','assets-manifest.json']){
    const htmlPath='/app/static/'+html;
    writeFileSync(htmlPath,readFileSync(htmlPath,'utf8').replaceAll(file,newName));
   }
