@@ -10,6 +10,8 @@ set -euo pipefail
 cd /opt/projects/affine
 source_dir="releases/$1/deploy/myserver"
 ./backup.sh
+mkdir -p gateway
+cp "$source_dir/gateway/server.mjs" gateway/server.mjs
 cp "$source_dir/compose.yml" compose.yml
 cp "$source_dir/backup.sh" backup.sh
 chmod 700 backup.sh
@@ -17,5 +19,5 @@ docker compose config --quiet
 docker compose pull
 docker compose up -d --wait --wait-timeout 180
 printf '%s\n' "$1" > deployed-commit
-curl --fail --retry 6 --retry-delay 5 https://my.ovvesley.com/info
+curl --fail --retry 6 --retry-delay 5 https://my.ovvesley.com/login
 REMOTE

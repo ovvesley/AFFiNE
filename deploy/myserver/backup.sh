@@ -13,7 +13,7 @@ test -n "$container"
 docker stop "$container" >/dev/null
 trap 'docker start "$container" >/dev/null' EXIT
 docker compose exec -T --interactive=false postgres pg_dump -U affine -d affine -Fc > "$dest/database.dump"
-tar -czf "$dest/files.tar.gz" config data/storage .env compose.yml
+tar -czf "$dest/files.tar.gz" config data/storage .env compose.yml gateway
 chmod -R go-rwx "$dest"
 docker start "$container" >/dev/null
 trap - EXIT

@@ -38,3 +38,13 @@ rebaixe a imagem após migrações: restaure banco e arquivos do mesmo snapshot.
 
 A validação inicial incluiu restauração do dump em banco temporário separado,
 HTTPS, login no navegador e persistência da conta após reinício.
+
+## Login obrigatório
+
+O gateway Node valida cada requisição e conexão WebSocket por currentUser no
+backend. Visitantes recebem /login; editor, APIs e arquivos exigem sessão válida.
+A raiz e links de workspaces locais abrem o workspace privado sincronizado após
+login. O backend não está mais na rede Traefik. O gateway encaminha os cookies
+originais do AFFiNE, sem guardar senhas ou criar autenticação paralela.
+O código do gateway está em gateway/server.mjs, com runtime fixado por digest.
+Backups incluem o gateway. A tela não oferece cadastro nem workspace demo.

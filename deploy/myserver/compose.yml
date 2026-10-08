@@ -14,7 +14,7 @@ services:
   affine:
     <<: *app
     restart: unless-stopped
-    networks: [internal, traefik]
+    networks: [internal]
     depends_on:
       redis: {condition: service_healthy}
       postgres: {condition: service_healthy}
@@ -28,6 +28,24 @@ services:
     logging:
       driver: json-file
       options: {max-size: 10m, max-file: '3'}
+
+  gateway:
+    image: node@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+    restart: unless-stopped
+    user: node
+    read_only: true
+    init: true
+    command: ['node', '/gateway/server.mjs']
+    volumes:
+      - /opt/projects/affine/gateway:/gateway:ro
+    networks: [internal, traefik]
+    depends_on:
+      affine: {condition: service_healthy}
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     labels:
       traefik.enable: 'true'
       traefik.docker.network: traefik
@@ -35,7 +53,7 @@ services:
       traefik.http.routers.affine.entrypoints: websecure
       traefik.http.routers.affine.tls: 'true'
       traefik.http.routers.affine.tls.certresolver: letsencrypt
-      traefik.http.services.affine.loadbalancer.server.port: '3010'
+      traefik.http.services.affine.loadbalancer.server.port: '3000'
   affine_migration:
     <<: *app
     command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js']
