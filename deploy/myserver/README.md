@@ -48,3 +48,12 @@ login. O backend não está mais na rede Traefik. O gateway encaminha os cookies
 originais do AFFiNE, sem guardar senhas ou criar autenticação paralela.
 O código do gateway está em gateway/server.mjs, com runtime fixado por digest.
 Backups incluem o gateway. A tela não oferece cadastro nem workspace demo.
+
+## Importação Obsidian
+
+O fork permite 128 MiB e 1000 notas por importação web (8 MiB por arquivo).
+Dockerfile deriva da release fixada e aplica a mesma mudança no bundle compilado,
+com verificação exata para falhar se o upstream mudar. O código fonte correspondente
+está em packages/frontend/core/src/desktop/dialogs/import/web-limits.ts.
+Build: docker build -t ovvesley-affine:obsidian deploy/myserver.
+Configure AFFINE_IMAGE com essa imagem antes do deploy.

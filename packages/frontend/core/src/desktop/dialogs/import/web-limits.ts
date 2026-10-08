@@ -7,11 +7,11 @@ export type WebImportLimits = {
 };
 
 export const webImportLimits: WebImportLimits = {
-  maxTotalBytes: 32 * 1024 * 1024,
+  maxTotalBytes: 128 * 1024 * 1024,
   maxEntryBytes: 8 * 1024 * 1024,
   maxEntryCount: 1000,
   maxNestedZipDepth: 0,
-  maxDocumentCount: 250,
+  maxDocumentCount: 1000,
 };
 
 export class WebImportLimitError extends Error {

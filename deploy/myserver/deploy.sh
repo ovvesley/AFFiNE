@@ -16,7 +16,12 @@ cp "$source_dir/compose.yml" compose.yml
 cp "$source_dir/backup.sh" backup.sh
 chmod 700 backup.sh
 docker compose config --quiet
-docker compose pull
+if docker compose config --images | grep -q '^ovvesley-affine:obsidian-0.27.4$'; then
+  docker build -t ovvesley-affine:obsidian-0.27.4 "$source_dir"
+fi
+while IFS= read -r image; do
+  docker image inspect "$image" >/dev/null 2>&1 || docker pull "$image"
+done < <(docker compose config --images | sort -u)
 docker compose up -d --wait --wait-timeout 180
 docker compose restart --no-deps gateway
 docker compose up -d --no-deps --wait --wait-timeout 90 gateway
