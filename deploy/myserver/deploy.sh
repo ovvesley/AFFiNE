@@ -18,6 +18,8 @@ chmod 700 backup.sh
 docker compose config --quiet
 docker compose pull
 docker compose up -d --wait --wait-timeout 180
+docker compose restart --no-deps gateway
+docker compose up -d --no-deps --wait --wait-timeout 90 gateway
 printf '%s\n' "$1" > deployed-commit
 curl --fail --retry 6 --retry-delay 5 https://my.ovvesley.com/login
 REMOTE
